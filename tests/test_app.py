@@ -1,6 +1,8 @@
 import os
+import re
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from studentpulse import create_app
 from studentpulse.services import analyze_readiness
@@ -15,6 +17,7 @@ class StudentPulseTestCase(unittest.TestCase):
                 "TESTING": True,
                 "SECRET_KEY": "test-secret",
                 "DATABASE": self.database,
+                "WTF_CSRF_ENABLED": False,
             }
         )
         self.client = self.app.test_client()
@@ -47,6 +50,42 @@ class StudentPulseTestCase(unittest.TestCase):
             follow_redirects=True,
         )
         self.assertIn(b"Test Student", response.data)
+
+    def test_csrf_protects_form_submissions_outside_testing_mode(self):
+        self.app.config["TESTING"] = False
+        self.app.config["WTF_CSRF_ENABLED"] = True
+
+        page = self.client.get("/register")
+        match = re.search(
+            rb'name="csrf_token" value="([^"]+)"', page.data
+        )
+        self.assertIsNotNone(match)
+
+        response = self.client.post(
+            "/register",
+            data={
+                "name": "Protected Student",
+                "email": "protected@example.test",
+                "password": "strong-pass-1",
+                "csrf_token": match.group(1).decode(),
+            },
+        )
+        self.assertEqual(response.status_code, 302)
+
+        rejected = self.client.post(
+            "/register",
+            data={
+                "name": "Unprotected Student",
+                "email": "unprotected@example.test",
+                "password": "strong-pass-1",
+            },
+        )
+        self.assertEqual(rejected.status_code, 400)
+
+    def test_production_requires_secret_key(self):
+        with patch.dict(os.environ, {"APP_ENV": "production", "SECRET_KEY": ""}):
+            with self.assertRaisesRegex(RuntimeError, "Set SECRET_KEY"):
+                create_app()
 
     def test_demo_pages_and_user_data_flows(self):
         self.login_demo()

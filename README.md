@@ -89,13 +89,36 @@ Run the integration tests with:
 python -m unittest discover -s tests -v
 ```
 
+## Publish a demo on PythonAnywhere
+
+The public source repository is <https://github.com/Arjun-kashyap982/StudentPulseAI>. The app uses SQLite, so keep its database inside your persistent PythonAnywhere home directory; do not put it in a temporary directory.
+
+1. Create a PythonAnywhere account and add a manual web app using a supported Python version.
+2. In a Bash console, clone the repository and install dependencies in a virtual environment. Replace `python3.13` with the Python version selected for the web app:
+
+   ```bash
+   cd ~
+   git clone https://github.com/Arjun-kashyap982/StudentPulseAI.git
+   cd StudentPulseAI
+   python3.13 -m venv .venv
+   . .venv/bin/activate
+   pip install -r requirements.txt
+   python -c "import secrets; print(secrets.token_hex(32))"
+   ```
+
+3. Set the web app's virtualenv to `/home/YOUR_USERNAME/StudentPulseAI/.venv`.
+4. Open the WSGI configuration file from the Web tab. Replace its contents with `pythonanywhere_wsgi.py`, then set `STUDENTPULSE_PROJECT_DIR` to `/home/YOUR_USERNAME/StudentPulseAI` and set `SECRET_KEY` to the random value from step 2 before the `from app import app` line. Do not put that secret in this repository. Keep `APP_ENV` as `production`.
+5. Reload the web app and open its PythonAnywhere URL. The SQLite database is created under the app's `instance/` folder and persists with the source checkout. The public demo login is `demo@studentpulse.ai` / `Demo1234!`; it is sample data and is intentionally not private.
+
+The included WSGI entry point requires a production `SECRET_KEY`, enables secure session-cookie settings, and enables CSRF protection on form submissions. PythonAnywhere account setup and its current free/paid limits are managed by the hosting provider; review them before relying on the service for long-term data.
+
 ## Limitations and future work
 
 - The role catalog and skill targets are starter examples, not labor-market research or professional certification standards.
 - Self-reported proficiency and evidence are not independently verified; scores are guidance, not hiring predictions.
 - Recommendations are transparent rules-based suggestions. Adding an optional external model would require privacy review, API-key management, and clearly labeled provenance.
 - Chart.js and the typography are loaded from CDNs; data entry and server-rendered pages still work without those assets, but charts/fonts may not load offline.
-- The application is intended for local demonstration. Production use would need CSRF protection, deployment-grade secret management, HTTPS, account recovery, stronger operational monitoring, and a reviewed privacy policy.
+- This is a student demonstration, not a fully operated production service. Account recovery, rate limiting, operational monitoring, backups, and a reviewed privacy policy remain future work.
 
 ## Suggested viva demonstration
 

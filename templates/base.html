@@ -30,7 +30,7 @@
       </nav>
       <div class="sidebar-bottom">
         <div class="mini-profile"><span class="avatar">{{ g.user.name[:1]|upper }}</span><div><strong>{{ g.user.name }}</strong><small>{{ g.user.email }}</small></div></div>
-        <form action="{{ url_for('main.logout') }}" method="post"><button class="nav-link logout-button" type="submit"><span class="nav-icon">↪</span>Log out</button></form>
+        <form action="{{ url_for('main.logout') }}" method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="nav-link logout-button" type="submit"><span class="nav-icon">↪</span>Log out</button></form>
       </div>
     </aside>
     <main class="main-area">

@@ -3,6 +3,7 @@ from pathlib import Path
 
 import click
 from flask import Flask
+from flask_wtf.csrf import CSRFProtect
 
 from .db import close_db, init_db, seed_demo
 from .routes import main
@@ -10,6 +11,11 @@ from .routes import main
 
 def create_app(test_config=None):
     project_root = Path(__file__).resolve().parent.parent
+    app_environment = os.environ.get("APP_ENV", "development").lower()
+    secret_key = os.environ.get("SECRET_KEY")
+    if app_environment == "production" and not secret_key:
+        raise RuntimeError("Set SECRET_KEY before starting StudentPulse AI in production.")
+
     app = Flask(
         __name__,
         instance_relative_config=True,
@@ -17,16 +23,21 @@ def create_app(test_config=None):
         static_folder=str(project_root / "static"),
     )
     app.config.from_mapping(
-        SECRET_KEY=os.environ.get("SECRET_KEY", "dev-key-change-before-deployment"),
+        SECRET_KEY=secret_key or "dev-key-change-before-deployment",
         DATABASE=os.environ.get(
             "DATABASE_PATH", str(Path(app.instance_path) / "studentpulse.sqlite3")
         ),
         DEBUG=os.environ.get("FLASK_DEBUG", "0") == "1",
+        SESSION_COOKIE_HTTPONLY=True,
+        SESSION_COOKIE_SAMESITE="Lax",
+        SESSION_COOKIE_SECURE=app_environment == "production",
+        WTF_CSRF_ENABLED=True,
     )
     if test_config:
         app.config.update(test_config)
     Path(app.instance_path).mkdir(parents=True, exist_ok=True)
 
+    CSRFProtect(app)
     app.register_blueprint(main)
     app.teardown_appcontext(close_db)
 
