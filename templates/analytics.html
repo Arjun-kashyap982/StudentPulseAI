@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Progress & Analytics — StudentPulse AI{% endblock %}{% block breadcrumb %}Progress & Analytics{% endblock %}
+{% block head %}<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>{% endblock %}
+{% block content %}
+<section class="page-heading"><div><div class="eyebrow">YOUR GROWTH, VISUALIZED</div><h1>Progress & analytics</h1><p>Every metric below is calculated from the profile, skills, evidence, and tasks saved in your account.</p></div></section>
+<section class="metric-grid"><article class="card metric-card"><span class="eyebrow">CAREER READINESS</span><strong>{{ data.analysis.readiness }}<small>%</small></strong><span>{{ data.profile['career_goal'] or 'No career goal selected' }}</span></article><article class="card metric-card"><span class="eyebrow">TASK COMPLETION</span><strong>{{ data.task_progress }}<small>%</small></strong><span>{{ data.completed }} completed · {{ data.pending }} pending</span></article><article class="card metric-card"><span class="eyebrow">SKILLS RECORDED</span><strong>{{ data.skill_count }}</strong><span>Skill entries in your profile</span></article><article class="card metric-card"><span class="eyebrow">PORTFOLIO EVIDENCE</span><strong>{{ project_count + certificate_count }}</strong><span>{{ project_count }} projects · {{ certificate_count }} certificates</span></article></section>
+<section class="chart-grid"><article class="card chart-card"><div class="card-top"><div><span class="eyebrow">ROLE SKILL MATCH</span><h2>Skill readiness by area</h2></div></div>{% if data.analysis.skills %}<div class="chart-wrap"><canvas id="skillsChart" aria-label="Bar chart of role skill readiness"></canvas></div>{% else %}<div class="empty-state"><p>Select a career goal and record skills to view a chart.</p></div>{% endif %}</article><article class="card chart-card"><div class="card-top"><div><span class="eyebrow">PLAN MOMENTUM</span><h2>Completed vs pending</h2></div></div><div class="chart-wrap doughnut-wrap"><canvas id="tasksChart" aria-label="Doughnut chart of task progress"></canvas></div><div class="chart-legend"><span><i class="legend-complete"></i>Completed · {{ data.completed }}</span><span><i class="legend-pending"></i>Pending · {{ data.pending }}</span></div></article></section>
+<section class="section-block"><div class="section-heading"><div><span class="eyebrow">TASK DETAILS</span><h2>Growth plan status</h2></div><a class="subtle-link" href="{{ url_for('main.growth_plan') }}">Open growth plan ↗</a></div><div class="card"><div class="analysis-list">{% for task in data.tasks %}<div class="analysis-row"><div class="analysis-main"><div class="analysis-title"><strong>{{ task.title }}</strong><span class="skill-status {{ 'strong' if task.completed else 'developing' }}">{{ 'Completed' if task.completed else 'Pending' }}</span></div><p>{{ task.description or 'No description provided.' }}</p><div class="comparison"><span>{{ task.skill_name or 'General growth' }}</span><span>{{ task.estimated_minutes }} minutes · {{ task.priority }} priority</span></div></div></div>{% else %}<p class="muted">No growth tasks have been created yet.</p>{% endfor %}</div></div></section>
+{% endblock %}
+{% block scripts %}
+<script>
+  const skills = {{ data.analysis.skills|map(attribute='name')|list|tojson }};
+  const values = {{ data.analysis.skills|map(attribute='score')|list|tojson }};
+  const completed = {{ data.completed|tojson }};
+  const pending = {{ data.pending|tojson }};
+  if (window.Chart) {
+    const shared = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } };
+    const skillCanvas = document.getElementById('skillsChart');
+    if (skillCanvas) new Chart(skillCanvas, { type: 'bar', data: { labels: skills, datasets: [{ data: values, backgroundColor: '#34d6c3', borderRadius: 6, maxBarThickness: 28 }] }, options: { ...shared, scales: { x: { ticks: { color: '#91a4b7' }, grid: { display: false } }, y: { min: 0, max: 100, ticks: { color: '#91a4b7', callback: value => value + '%' }, grid: { color: 'rgba(152,176,194,.11)' } } } } });
+    const taskCanvas = document.getElementById('tasksChart');
+    if (taskCanvas) new Chart(taskCanvas, { type: 'doughnut', data: { labels: ['Completed', 'Pending'], datasets: [{ data: [completed, pending], backgroundColor: ['#b2ed68', '#263a4d'], borderWidth: 0, hoverOffset: 5 }] }, options: { ...shared, cutout: '76%', plugins: { legend: { display: false } } } });
+  }
+</script>
+{% endblock %}

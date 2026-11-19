@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#08121e">
+  <title>{% block title %}StudentPulse AI{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  {% block head %}{% endblock %}
+</head>
+<body>
+  {% if g.user %}
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <a class="brand" href="{{ url_for('main.dashboard') }}"><span class="brand-mark">S</span><span>student<span class="brand-accent">pulse</span><small>AI CAREER COMPANION</small></span></a>
+      <div class="nav-label">WORKSPACE</div>
+      <nav class="side-nav">
+        {% set links = [
+          ('dashboard','Overview','▦'),('profile','My Profile','◉'),('career','Career Goals','◎'),
+          ('skills','Skills','⌘'),('gap_analysis','Skill Gap Analysis','◫'),('growth_plan','Growth Plan','↗'),
+          ('projects','Projects','▧'),('certifications','Certifications','◇'),('analytics','Progress & Analytics','▤'),
+          ('settings','Settings','⚙')
+        ] %}
+        {% for endpoint, label, icon in links %}
+          <a class="nav-link {% if request.endpoint == 'main.' ~ endpoint %}active{% endif %}" href="{{ url_for('main.' ~ endpoint) }}"><span class="nav-icon">{{ icon }}</span>{{ label }}</a>
+        {% endfor %}
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="mini-profile"><span class="avatar">{{ g.user.name[:1]|upper }}</span><div><strong>{{ g.user.name }}</strong><small>{{ g.user.email }}</small></div></div>
+        <form action="{{ url_for('main.logout') }}" method="post"><button class="nav-link logout-button" type="submit"><span class="nav-icon">↪</span>Log out</button></form>
+      </div>
+    </aside>
+    <main class="main-area">
+      <header class="topbar"><button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation">☰</button><span class="breadcrumb">Workspace <b>/</b> {% block breadcrumb %}Overview{% endblock %}</span><span class="topbar-status"><i></i> Your progress is saved</span></header>
+      <div class="page-content">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}<div class="flash-stack">{% for category, message in messages %}<div class="flash {{ category }}" role="status">{{ message }}<button type="button" aria-label="Dismiss" onclick="this.parentElement.remove()">×</button></div>{% endfor %}</div>{% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+      </div>
+    </main>
+  </div>
+  {% else %}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}<div class="public-flashes">{% for category, message in messages %}<div class="flash {{ category }}" role="status">{{ message }}<button type="button" aria-label="Dismiss" onclick="this.parentElement.remove()">×</button></div>{% endfor %}</div>{% endif %}
+    {% endwith %}
+    {% block public_content %}{% endblock %}
+  {% endif %}
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

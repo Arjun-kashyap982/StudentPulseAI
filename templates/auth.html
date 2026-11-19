@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Create account' if mode == 'register' else 'Log in' }} — StudentPulse AI{% endblock %}
+{% block public_content %}
+<main class="auth-page"><a class="brand auth-brand" href="{{ url_for('main.landing') }}"><span class="brand-mark">S</span><span>student<span class="brand-accent">pulse</span><small>AI CAREER COMPANION</small></span></a><section class="auth-card"><div class="eyebrow">YOUR NEXT CHAPTER STARTS HERE</div><h1>{{ 'Create your account' if mode == 'register' else 'Welcome back' }}</h1><p>{{ 'Build your career readiness profile and start a plan that fits you.' if mode == 'register' else 'Continue building your career readiness.' }}</p>
+  <form method="post" class="form-stack">
+    {% if mode == 'register' %}<label>Full name<input name="name" autocomplete="name" maxlength="80" placeholder="e.g. Maya Patel" required></label>{% endif %}
+    <label>Email address<input name="email" type="email" autocomplete="email" maxlength="254" placeholder="you@college.edu" required></label>
+    <label>Password<input name="password" type="password" autocomplete="{{ 'new-password' if mode == 'register' else 'current-password' }}" minlength="{{ 8 if mode == 'register' else 1 }}" placeholder="{{ 'At least 8 characters' if mode == 'register' else 'Your password' }}" required></label>
+    <button class="button button-primary button-full" type="submit">{{ 'Create account' if mode == 'register' else 'Log in' }} <span>→</span></button>
+  </form>
+  <div class="auth-switch">{{ 'Already have an account?' if mode == 'register' else 'New to StudentPulse?' }} <a href="{{ url_for('main.login' if mode == 'register' else 'main.register') }}">{{ 'Log in' if mode == 'register' else 'Create an account' }}</a></div>
+  {% if mode == 'login' %}<div class="demo-hint"><strong>Faculty demo account</strong><span>demo@studentpulse.ai</span><span>Password: Demo1234!</span></div>{% endif %}
+</section><a class="back-home" href="{{ url_for('main.landing') }}">← Back to home</a></main>
+{% endblock %}
