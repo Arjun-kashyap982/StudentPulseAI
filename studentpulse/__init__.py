@@ -13,6 +13,11 @@ def create_app(test_config=None):
     project_root = Path(__file__).resolve().parent.parent
     app_environment = os.environ.get("APP_ENV", "development").lower()
     secret_key = os.environ.get("SECRET_KEY")
+    default_database = (
+        "/tmp/studentpulse.sqlite3"
+        if os.environ.get("VERCEL")
+        else str(Path(project_root / "instance" / "studentpulse.sqlite3"))
+    )
     if app_environment == "production" and not secret_key:
         raise RuntimeError("Set SECRET_KEY before starting StudentPulse AI in production.")
 
@@ -25,7 +30,7 @@ def create_app(test_config=None):
     app.config.from_mapping(
         SECRET_KEY=secret_key or "dev-key-change-before-deployment",
         DATABASE=os.environ.get(
-            "DATABASE_PATH", str(Path(app.instance_path) / "studentpulse.sqlite3")
+            "DATABASE_PATH", default_database
         ),
         DEBUG=os.environ.get("FLASK_DEBUG", "0") == "1",
         SESSION_COOKIE_HTTPONLY=True,
